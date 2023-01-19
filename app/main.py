@@ -1,5 +1,6 @@
 from fastapi import FastAPI 
 import funciones_etl
+import funciones_carga
 from fastapi.responses import FileResponse
 
 app = FastAPI()
@@ -62,6 +63,11 @@ async def closed_deals():
 async def zip_code_prefix():
     zcp= funciones_etl.zip_code_prefix()
     return zcp
+
+@app.get("/validacion")
+async def respuesta():
+    respuesta= funciones_carga.rta
+    return respuesta
 
 
 
