@@ -4,11 +4,11 @@
 import pymysql
 import sqlalchemy
 import pandas as pd
-import numpy as np
-import requests as rq
-import io
-import smtplib
 import funciones_etl
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 
 # **************************************************************************************************************************
 # ************************************************ Conexión a Base de datos * **********************************************
@@ -25,58 +25,18 @@ cursor = conexion.cursor()
 # ************************************************ Importo datasets de la API **********************************************
 # **************************************************************************************************************************
 
-# Obtenemos dataframe de funciones_etl
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/sellers').content
-#sellers = pd.read_json(io.StringIO(req.decode('utf-8')))
-#sellers = sellers.transpose()
-#sellers = sellers.fillna("")
-sellers= funciones_etl.sellers_etl()
+# Obtenemos dataframe de la API
+sellers = funciones_etl.sellers_etl()
+products = funciones_etl.products_etl()
+orders = funciones_etl.orders_etl()
+order_items = funciones_etl.order_items_etl()
+order_reviews = funciones_etl.order_reviews_etl()
+order_payments = funciones_etl.order_payments_etl()
+closed_deals = funciones_etl.closed_deals_etl()
+customers = funciones_etl.customers_etl()
+marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
+zip_code_prefix = funciones_etl.zip_code_prefix_etl()
 
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/products').content
-#products = pd.read_json(io.StringIO(req.decode('utf-8')))
-#products = products.transpose()
-#products = products.fillna("")
-products= funciones_etl.products_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/orders').content
-#orders = pd.read_json(io.StringIO(req.decode('utf-8')))
-#orders = orders.transpose()
-#orders = orders.fillna("")
-orders= funciones_etl.orders_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/order_items').content
-#order_items = pd.read_json(io.StringIO(req.decode('utf-8')))
-#order_items = order_items.transpose()
-#order_items = order_items.fillna("")
-order_items= funciones_etl.order_items_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/order_reviews').content
-#order_reviews = pd.read_json(io.StringIO(req.decode('utf-8')))
-#order_reviews = order_reviews.transpose()
-#order_reviews = order_reviews.fillna("")
-order_reviews= funciones_etl.order_reviews_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/payments').content
-#order_payments = pd.read_json(io.StringIO(req.decode('utf-8')))
-#order_payments = order_payments.transpose()
-#order_payments = order_payments.fillna("")
-order_payments= funciones_etl.order_payments_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/closed_deals').content
-#closed_deals = pd.read_json(io.StringIO(req.decode('utf-8')))
-#closed_deals = closed_deals.transpose()
-#closed_deals = closed_deals.fillna("")
-closed_deals= funciones_etl.closed_deals_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/customers').content
-#customers = pd.read_json(io.StringIO(req.decode('utf-8')))
-#customers = customers.transpose()
-#customers = customers.fillna("")
-customers= funciones_etl.customers_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/marketing_qualified_leads').content
-#marketing_qualified_leads = pd.read_json(io.StringIO(req.decode('utf-8')))
-#marketing_qualified_leads = marketing_qualified_leads.transpose()
-#marketing_qualified_leads = marketing_qualified_leads.fillna("")
-marketing_qualified_leads= funciones_etl.marketing_qualified_leads_etl()
-#req = rq.get('https://pg-olist-prod-apisup-dxd47n.mo1.mogenius.io/zip_code_prefix').content
-#zip_code_prefix = pd.read_json(io.StringIO(req.decode('utf-8')))
-#zip_code_prefix = zip_code_prefix.transpose()
-#zip_code_prefix = zip_code_prefix.fillna("")
-zip_code_prefix= funciones_etl.zip_code_prefix()
 # **************************************************************************************************************************
 # ****************************************************** VALIDACIÓN ********************************************************
 # **************************************************************************************************************************
@@ -116,53 +76,62 @@ def validate_df(dataframe):
     return True
 
 def enviar_email(validaciones):
-    remitente = "Desde grupo3 <ronal.cabrera@gmail.com>" 
-    destinatario = "Olist <mmacielaortiz@gmail.com>" 
-    asunto = "Reporte validación" 
-    mensaje=(""" Reporte automático sobre integridad de datos en base de datos Olist<br/>
-                <br/>            
-                <b>• closed_deals: %s</b>
-                <b>• customers: %s</b> 
-                <b>• marketing_qualified_leads: %s</b> 
-                <b>• order_items: %s</b> 
-                <b>• order_payments: %s</b> 
-                <b>• order_reviews</b> 
-                <b>• orders: %s</b> 
-                <b>• products: %s</b> 
-                <b>• sellers: %s</b> 
-            """, validaciones)
-
-    email = ("""From: %s 
-                To: %s 
-                MIME-Version: 1.0 
-                Content-type: text/html 
-                Subject: %s 
-
-                %s
-                """,(remitente, destinatario, asunto, mensaje))
-
-    try: 
-        smtp = smtplib.SMTP('localhost') 
-        smtp.sendmail(remitente, destinatario, email) 
-        return "Correo enviado" 
-    except: 
-        return """Error: el mensaje no pudo enviarse. 
-                  Compruebe que sendmail se encuentra instalado en su sistema"""
-def val():
-
-    validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketing_qualified_leads),
-                validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
-                validate_df(sellers),validate_df(products),validate_df(orders))
-
-    rta = enviar_email(validacion)
     
+    # create message object instance 
+    msg = MIMEMultipart()    
+    message = """Reporte automático sobre integridad de datos en base de datos Olist
+                            
+                • closed_deals: {}
+                • customers: {} 
+                • marketing_qualified_leads: {} 
+                • order_items: {} 
+                • order_payments: {} 
+                • order_reviews: {} 
+                • orders: {} 
+                • products: {} 
+                • sellers: {} 
+            """.format(validaciones[0],validaciones[1],validaciones[2],
+                        validaciones[3],validaciones[4],validaciones[5],
+                        validaciones[6],validaciones[7],validaciones[8])
+    
+    # setup the parameters of the message 
+    password = "nkdmrcazjvrtoqly"
+    msg['From'] = "grupo3.pg@gmail.com"
+    msg['To'] = "mmacielaortiz@gmail.com"
+    msg['Subject'] = "Probando"
+    
+    # add in the message body 
+    msg.attach(MIMEText(message, 'plain'))
+    
+    #create server 
+    server = smtplib.SMTP('smtp.gmail.com: 587')
+    
+    server.starttls()
+    
+    # Login Credentials for sending the mail 
+    server.login(msg['From'], password)
+    
+    
+    # send the message via the server. 
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+    
+    server.quit()
+    
+    return 'Mensaje enviado'
 
-    # **************************************************************************************************************************
-    # ****************************************************** Cargo a MySQL *****************************************************
-    # **************************************************************************************************************************
-    if (rta == "Correo enviado"):
+validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketing_qualified_leads),
+            validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
+            validate_df(sellers),validate_df(products),validate_df(orders))
+
+rta = enviar_email(validacion)
+
+# **************************************************************************************************************************
+# ****************************************************** Cargo a MySQL *****************************************************
+# **************************************************************************************************************************
+def motor():
+    if (rta == 'Mensaje enviado'):
         # PRODUCTS
-        cursor.execute("""CREATE TABLE products(
+        cursor.execute("""CREATE TABLE IF NOT EXISTS products(
                                                 product_id VARCHAR(50) NOT NULL, 
                                                 product_category_name VARCHAR(50) NOT NULL,
                                                 product_name_lenght VARCHAR(10),
@@ -212,6 +181,10 @@ def val():
         sql_dataframe['product_length_cm']=product_length_cm
         sql_dataframe['product_height_cm']=product_height_cm
         sql_dataframe['product_width_cm']=product_width_cm
+
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(products[i]))
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(products, how='outer', indicator='union')
@@ -291,6 +264,10 @@ def val():
         sql_dataframe['seller_city']=seller_city
         sql_dataframe['seller_state']=seller_state
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(sellers[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(sellers, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -321,7 +298,7 @@ def val():
 
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDERS
-        cursor.execute("""CREATE TABLE orders(
+        cursor.execute("""CREATE TABLE IF NOT EXISTS orders(
                                             order_id VARCHAR(50) NOT NULL, 
                                             customer_id VARCHAR(50) NOT NULL,
                                             order_status VARCHAR(20) NOT NULL,
@@ -366,6 +343,10 @@ def val():
         sql_dataframe['order_delivered_carrier_date']=order_delivered_carrier_date
         sql_dataframe['order_delivered_customer_date']=order_delivered_customer_date
         sql_dataframe['order_estimated_delivery_date']=order_estimated_delivery_date
+
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(orders[i]))
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(orders, how='outer', indicator='union')
@@ -440,6 +421,10 @@ def val():
         sql_dataframe['landing_page_id']=landing_page_id
         sql_dataframe['origin']=origin
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(marketing_qualified_leads[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(marketing_qualified_leads, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -511,6 +496,10 @@ def val():
         sql_dataframe['review_creation_date']=review_creation_date
         sql_dataframe['review_answer_timestamp']=review_answer_timestamp
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_reviews[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_reviews, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -580,6 +569,10 @@ def val():
         sql_dataframe['payment_type']=payment_type
         sql_dataframe['payment_installments']=payment_installments
         sql_dataframe['payment_value']=payment_value
+
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_payments[i]))
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_payments, how='outer', indicator='union')
@@ -657,6 +650,10 @@ def val():
         sql_dataframe['price']=price
         sql_dataframe['freight_value']=freight_value
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_items[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_items, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -728,6 +725,10 @@ def val():
         sql_dataframe['customer_city']=customer_city
         sql_dataframe['customer_state']=customer_state
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(customers[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(customers, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -757,9 +758,9 @@ def val():
         conexion.commit()
 
         # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_score INT;")
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_creation_date DATETIME;")
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_answer_timestamp DATETIME;")
+        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_score INT;")
+        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_creation_date DATETIME;")
+        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_answer_timestamp DATETIME;")
         conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # CLOSED_DEALS
@@ -833,6 +834,10 @@ def val():
         sql_dataframe['declared_product_catalog_size']=declared_product_catalog_size
         sql_dataframe['declared_monthly_revenue']=declared_monthly_revenue
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(closed_deals[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(closed_deals, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -905,6 +910,10 @@ def val():
         sql_dataframe['lat']=lat
         sql_dataframe['long']=long
 
+        # Normalizamos los tipos de dato
+        for i in range(len(sql_dataframe.columns)):
+            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(zip_code_prefix[i]))
+
         # Check de informacion nueva
         filtro = sql_dataframe.merge(zip_code_prefix, how='outer', indicator='union')
         filtro = filtro[filtro['union']=='right_only']
@@ -929,5 +938,5 @@ def val():
         cursor.execute("ALTER TABLE zip_code_prefix MODIFY COLUMN lat FLOAT;")
         cursor.execute("ALTER TABLE zip_code_prefix MODIFY COLUMN long FLOAT;")
         conexion.commit()
-
-        return rta
+        
+    return 'Carga finalizada'
