@@ -183,8 +183,9 @@ def motor():
         sql_dataframe['product_width_cm']=product_width_cm
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(products[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(products[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(products, how='outer', indicator='union')
@@ -265,8 +266,9 @@ def motor():
         sql_dataframe['seller_state']=seller_state
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(sellers[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(sellers[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(sellers, how='outer', indicator='union')
@@ -345,8 +347,9 @@ def motor():
         sql_dataframe['order_estimated_delivery_date']=order_estimated_delivery_date
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(orders[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(orders[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(orders, how='outer', indicator='union')
@@ -422,8 +425,9 @@ def motor():
         sql_dataframe['origin']=origin
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(marketing_qualified_leads[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(marketing_qualified_leads[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(marketing_qualified_leads, how='outer', indicator='union')
@@ -497,8 +501,9 @@ def motor():
         sql_dataframe['review_answer_timestamp']=review_answer_timestamp
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_reviews[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(order_reviews[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_reviews, how='outer', indicator='union')
@@ -571,8 +576,9 @@ def motor():
         sql_dataframe['payment_value']=payment_value
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_payments[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(order_payments[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_payments, how='outer', indicator='union')
@@ -651,8 +657,9 @@ def motor():
         sql_dataframe['freight_value']=freight_value
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(order_items[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(order_items[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(order_items, how='outer', indicator='union')
@@ -726,8 +733,9 @@ def motor():
         sql_dataframe['customer_state']=customer_state
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(customers[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(customers[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(customers, how='outer', indicator='union')
@@ -835,8 +843,9 @@ def motor():
         sql_dataframe['declared_monthly_revenue']=declared_monthly_revenue
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(closed_deals[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(closed_deals[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(closed_deals, how='outer', indicator='union')
@@ -911,8 +920,9 @@ def motor():
         sql_dataframe['long']=long
 
         # Normalizamos los tipos de dato
-        for i in range(len(sql_dataframe.columns)):
-            sql_dataframe.columns[i] = sql_dataframe.columns[i].astype(type(zip_code_prefix[i]))
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(zip_code_prefix[lst[i]].dtype)
 
         # Check de informacion nueva
         filtro = sql_dataframe.merge(zip_code_prefix, how='outer', indicator='union')
