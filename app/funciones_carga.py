@@ -123,12 +123,17 @@ validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketi
             validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
             validate_df(sellers),validate_df(products),validate_df(orders))
 
-rta = enviar_email(validacion)
 
 # **************************************************************************************************************************
 # ****************************************************** Cargo a MySQL *****************************************************
 # **************************************************************************************************************************
 def motor():
+
+    enviado = False
+    if (enviado == False):
+        rta = enviar_email(validacion)
+        enviado = True
+
     if (rta == 'Mensaje enviado'):
         # PRODUCTS
         cursor.execute("""CREATE TABLE IF NOT EXISTS products(
@@ -222,16 +227,6 @@ def motor():
         cursor.execute("UPDATE products SET product_width_cm = NULL WHERE product_width_cm = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_name_lenght FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_description_lenght FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_photos_qty FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_weight_g FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_length_cm FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_height_cm FLOAT;")
-        cursor.execute("ALTER TABLE products MODIFY COLUMN product_width_cm FLOAT;")
-
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # SELLERS
         cursor.execute("""CREATE TABLE IF NOT EXISTS sellers(
@@ -292,10 +287,6 @@ def motor():
 
         # Cambio los vacios por null
         cursor.execute("UPDATE sellers SET seller_zip_code_prefix = NULL WHERE seller_zip_code_prefix = '';")
-        conexion.commit()
-
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE sellers MODIFY COLUMN seller_zip_code_prefix INT;")
         conexion.commit()
 
         # -----------------------------------------------------------------------------------------------------------------------
@@ -383,15 +374,6 @@ def motor():
         cursor.execute("UPDATE orders SET order_estimated_delivery_date = NULL WHERE order_estimated_delivery_date = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-
-        cursor.execute("ALTER TABLE orders MODIFY COLUMN order_purchase_timestamp DATETIME;")
-        cursor.execute("ALTER TABLE orders MODIFY COLUMN order_approved_at DATETIME;")
-        cursor.execute("ALTER TABLE orders MODIFY COLUMN order_delivered_carrier_date DATETIME;")
-        cursor.execute("ALTER TABLE orders MODIFY COLUMN order_delivered_customer_date DATETIME;")
-        cursor.execute("ALTER TABLE orders MODIFY COLUMN order_estimated_delivery_date DATETIME;")
-
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # MARKETING_QUALIFIED_LEADS
         cursor.execute("""CREATE TABLE IF NOT EXISTS marketing_qualified_leads(
@@ -452,9 +434,6 @@ def motor():
         cursor.execute("UPDATE marketing_qualified_leads SET first_contact_date = NULL WHERE first_contact_date = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE marketing_qualified_leads MODIFY COLUMN first_contact_date DATE;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_REVIEWS
         cursor.execute("""CREATE TABLE IF NOT EXISTS order_reviews(
@@ -534,11 +513,6 @@ def motor():
         cursor.execute("UPDATE order_reviews SET review_answer_timestamp = NULL WHERE review_answer_timestamp = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_score INT;")
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_creation_date DATETIME;")
-        cursor.execute("ALTER TABLE order_reviews MODIFY COLUMN review_answer_timestamp DATETIME;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_PAYMENTS
         cursor.execute("""CREATE TABLE IF NOT EXISTS  order_payments(order_id VARCHAR(50) NOT NULL, 
@@ -606,11 +580,6 @@ def motor():
         cursor.execute("UPDATE order_payments SET payment_value = NULL WHERE payment_value = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE order_payments MODIFY COLUMN payment_sequential INT;")
-        cursor.execute("ALTER TABLE order_payments MODIFY COLUMN payment_installments INT;")
-        cursor.execute("ALTER TABLE order_payments MODIFY COLUMN payment_value FLOAT;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_ITEMS
         cursor.execute("""CREATE TABLE IF NOT EXISTS order_items(
@@ -690,12 +659,6 @@ def motor():
         cursor.execute("UPDATE order_items SET freight_value = NULL WHERE freight_value = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE order_items MODIFY COLUMN order_item_id INT;")
-        cursor.execute("ALTER TABLE order_items MODIFY COLUMN shipping_limit_date DATETIME;")
-        cursor.execute("ALTER TABLE order_items MODIFY COLUMN price FLOAT;")
-        cursor.execute("ALTER TABLE order_items MODIFY COLUMN freight_value FLOAT;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # CUSTOMERS
         cursor.execute("""CREATE TABLE IF NOT EXISTS customers(
@@ -765,11 +728,6 @@ def motor():
         cursor.execute("ALTER TABLE customers MODIFY COLUMN customer_zip_code_prefix INT;")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_score INT;")
-        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_creation_date DATETIME;")
-        cursor.execute("ALTER TABLE customers MODIFY COLUMN review_answer_timestamp DATETIME;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # CLOSED_DEALS
         cursor.execute("""CREATE TABLE IF NOT EXISTS closed_deals(
@@ -882,18 +840,13 @@ def motor():
         cursor.execute("UPDATE closed_deals SET declared_monthly_revenue = NULL WHERE declared_monthly_revenue = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE closed_deals MODIFY COLUMN won_date DATETIME;")
-        cursor.execute("ALTER TABLE closed_deals MODIFY COLUMN declared_product_catalog_size FLOAT;")
-        cursor.execute("ALTER TABLE closed_deals MODIFY COLUMN declared_monthly_revenue FLOAT;")
-        conexion.commit()
         # -----------------------------------------------------------------------------------------------------------------------
         # ZIP_CODE_PREFIX
         cursor.execute("""CREATE TABLE IF NOT EXISTS zip_code_prefix(
                                                             prefix INT NOT NULL, 
                                                             customer_state VARCHAR(50) NOT NULL,
-                                                            lat VARCHAR(50) NOT NULL,
-                                                            long VARCHAR(50) NOT NULL)
+                                                            lat FLOAT NOT NULL,
+                                                            long FLOAT NOT NULL)
                             ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
         conexion.commit() # actualizo para ver los datos
 
@@ -942,11 +895,5 @@ def motor():
                                                         lat,
                                                         long)VALUES (%s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
-
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE zip_code_prefix MODIFY COLUMN prefix INT;")
-        cursor.execute("ALTER TABLE zip_code_prefix MODIFY COLUMN lat FLOAT;")
-        cursor.execute("ALTER TABLE zip_code_prefix MODIFY COLUMN long FLOAT;")
-        conexion.commit()
         
     return 'Carga finalizada'

@@ -184,6 +184,67 @@ def zip_code_prefix_etl():
                                         np.where((czcp>89999)&(czcp<100000),'SC',
                                         'S/D' # Si no esta en el rango, sin datos.
                                         )))))))))))))))))))))))))))))))
+
+    zcpc = zip_code_prefix.customer_state.values
+
+    zip_code_prefix['lat'] =    np.where(zcpc=='SP',-23.5475,
+                                np.where(zcpc=='RJ',-22.90642,
+                                np.where(zcpc=='ES',-22.11583,
+                                np.where(zcpc=='MG',-21.235,
+                                np.where(zcpc=='BA',-12.97111,
+                                np.where(zcpc=='SE',-10.91111,
+                                np.where(zcpc=='PE',-8.05389,
+                                np.where(zcpc=='AL',-9.66583,
+                                np.where(zcpc=='PB',-7.115,
+                                np.where(zcpc=='RN',-5.795,
+                                np.where(zcpc=='CE',-3.71722,
+                                np.where(zcpc=='PI',-5.08917,
+                                np.where(zcpc=='MA',-2.52972,
+                                np.where(zcpc=='PA',-1.45583,
+                                np.where(zcpc=='AP',0.03889,
+                                np.where(zcpc=='AM',-3.10194,
+                                np.where(zcpc=='RR',2.81972,
+                                np.where(zcpc=='AC',-9.97472,
+                                np.where(zcpc=='DF',-15.77972,
+                                np.where(zcpc=='GO',-16.67861,
+                                np.where(zcpc=='RO',-8.76194,
+                                np.where(zcpc=='TO',-10.16745,
+                                np.where(zcpc=='MT',-15.59611,
+                                np.where(zcpc=='MS',-20.44278,
+                                np.where(zcpc=='PR',-25.42778,
+                                np.where(zcpc=='SC',-27.59667,
+                                'S/D'
+                                ))))))))))))))))))))))))))
+
+    zip_code_prefix['long'] =   np.where(zcpc=='SP',-46.63611,
+                                np.where(zcpc=='RJ',-43.18223,
+                                np.where(zcpc=='ES',-46.68278,
+                                np.where(zcpc=='MG',-45.75861,
+                                np.where(zcpc=='BA',-38.51083,
+                                np.where(zcpc=='SE',-37.07167,
+                                np.where(zcpc=='PE',-34.88111,
+                                np.where(zcpc=='AL',-35.73528,
+                                np.where(zcpc=='PB',-34.86306,
+                                np.where(zcpc=='RN',-35.20944,
+                                np.where(zcpc=='CE',-38.54306,
+                                np.where(zcpc=='PI',-42.80194,
+                                np.where(zcpc=='MA',-44.30278,
+                                np.where(zcpc=='PA',-48.50444,
+                                np.where(zcpc=='AP',-51.06639,
+                                np.where(zcpc=='AM',-60.025,
+                                np.where(zcpc=='RR',-60.67333,
+                                np.where(zcpc=='AC',-67.81,
+                                np.where(zcpc=='DF',-47.92972,
+                                np.where(zcpc=='GO',-49.25389,
+                                np.where(zcpc=='RO',-63.90389,
+                                np.where(zcpc=='TO',-48.32766,
+                                np.where(zcpc=='MT',-56.09667,
+                                np.where(zcpc=='MS',-54.64639,
+                                np.where(zcpc=='PR',-49.27306,
+                                np.where(zcpc=='SC',-48.54917,
+                                'S/D'
+                                ))))))))))))))))))))))))))
+
     return zip_code_prefix
 
 
