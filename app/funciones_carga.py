@@ -22,9 +22,8 @@ def conect_db():
                 passwd = 'pscale_pw_xJtpCj9sIr1JRelAqFEIRExmGep2kJrFs12dxipAZrZ',
                 db = 'grupo7_pg',
                 ssl={"rejectUnauthorized":True})
-        cursor = conexion.cursor()
         print("Conexión con base de dato establecida correctamente")
-        return [cursor, conexion]
+        return conexion
     except:
         print("Error al conectarse a la db")
 
@@ -86,9 +85,8 @@ def enviar_email(validaciones):
 # **************************************************************************************************************************
 def motor():
     print("Iniciando ejecución de función motor")
-    db = conect_db()
-    cursor = db[0]
-    conexion = db[1]
+    conexion=conect_db()
+    cursor = conexion.cursor()
 
     # **************************************************************************************************************************
     # ************************************************ Importo datasets de la API **********************************************
@@ -158,6 +156,7 @@ def motor():
 
     #if (rta == 'Mensaje enviado'):
         # PRODUCTS
+        print("Iniciando proceso de creación de tablas")
         cursor.execute("""CREATE TABLE IF NOT EXISTS products(
                                                 product_id VARCHAR(50) NOT NULL, 
                                                 product_category_name VARCHAR(50) NOT NULL,
@@ -537,7 +536,7 @@ def motor():
 
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_PAYMENTS
-        cursor.execute("""CREATE TABLE IF NOT EXISTS  order_payments(order_id VARCHAR(50) NOT NULL, 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS order_payments(order_id VARCHAR(50) NOT NULL, 
                                                     payment_sequential VARCHAR(5) NOT NULL,
                                                     payment_type VARCHAR(20) NOT NULL,
                                                     payment_installments VARCHAR(5) NOT NULL,
