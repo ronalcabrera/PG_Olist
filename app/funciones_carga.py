@@ -13,128 +13,148 @@ import smtplib
 # **************************************************************************************************************************
 # ************************************************ Conexión a Base de datos * **********************************************
 # **************************************************************************************************************************
-conexion = pymysql.connect(
-        host = 'aws-sa-east-1.connect.psdb.cloud',
-        user = 'hdj11vgbubzez1k2mmw0',
-        passwd = 'pscale_pw_xJtpCj9sIr1JRelAqFEIRExmGep2kJrFs12dxipAZrZ',
-        db = 'grupo7_pg',
-        ssl={"rejectUnauthorized":True})
-cursor = conexion.cursor()
+def conect_db():
+    try:
+        print("Iniciando conexión a base de datos")
+        conexion = pymysql.connect(
+                host = 'aws-sa-east-1.connect.psdb.cloud',
+                user = 'hdj11vgbubzez1k2mmw0',
+                passwd = 'pscale_pw_xJtpCj9sIr1JRelAqFEIRExmGep2kJrFs12dxipAZrZ',
+                db = 'grupo7_pg',
+                ssl={"rejectUnauthorized":True})
+        cursor = conexion.cursor()
+        print("Conexión con base de dato establecida correctamente")
+        return cursor
+    except:
+        print("Error al conectarse a la db")
 
-# **************************************************************************************************************************
-# ************************************************ Importo datasets de la API **********************************************
-# **************************************************************************************************************************
 
-# Obtenemos dataframe de la API
-sellers = funciones_etl.sellers_etl()
-products = funciones_etl.products_etl()
-orders = funciones_etl.orders_etl()
-order_items = funciones_etl.order_items_etl()
-order_reviews = funciones_etl.order_reviews_etl()
-order_payments = funciones_etl.order_payments_etl()
-closed_deals = funciones_etl.closed_deals_etl()
-customers = funciones_etl.customers_etl()
-marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
-zip_code_prefix = funciones_etl.zip_code_prefix_etl()
-
-# **************************************************************************************************************************
-# ****************************************************** VALIDACIÓN ********************************************************
-# **************************************************************************************************************************
-def validate_df(dataframe):    
-    match dataframe.columns[0]:        
-        case "product_id":
-            target = products
-        case "seller_id":
-            target = sellers
-        case "customer_id":
-            target = customers
-        case "order_id":
-            if dataframe.columns[1] == 'order_item_id':
-                target = order_items
-            elif dataframe.columns[1] == 'payment_sequential':
-                target = order_payments
-            else:
-                target = orders
-        case "mql_id":
-            if dataframe.columns[1] == 'seller_id':
-                target = closed_deals
-            else:
-                target = marketing_qualified_leads
-        case "review_id":
-            target = order_reviews
-
-    # Verificar la cantidad de columnas
-    if len(dataframe.columns) != len(target.columns):
-        return False
-    # Verificar los nombres de las columnas
-    if set(dataframe.columns) != set(target.columns):
-        return False
-    # Verificar el tipo de datos de las columnas    
-    for column, dtype in target.items():
-        if dataframe[column].dtype != dtype:
-            return False
-    return True
 
 def enviar_email(validaciones):
-    
-    # create message object instance 
-    msg = MIMEMultipart()    
-    message = """Reporte automático sobre integridad de datos en base de datos Olist
-                            
-                • closed_deals: {}
-                • customers: {} 
-                • marketing_qualified_leads: {} 
-                • order_items: {} 
-                • order_payments: {} 
-                • order_reviews: {} 
-                • orders: {} 
-                • products: {} 
-                • sellers: {} 
-            """.format(validaciones[0],validaciones[1],validaciones[2],
-                        validaciones[3],validaciones[4],validaciones[5],
-                        validaciones[6],validaciones[7],validaciones[8])
-    
-    # setup the parameters of the message 
-    password = "nkdmrcazjvrtoqly"
-    msg['From'] = "grupo3.pg@gmail.com"
-    msg['To'] = "mmacielaortiz@gmail.com"
-    msg['Subject'] = "Probando"
-    
-    # add in the message body 
-    msg.attach(MIMEText(message, 'plain'))
-    
-    #create server 
-    server = smtplib.SMTP('smtp.gmail.com: 587')
-    
-    server.starttls()
-    
-    # Login Credentials for sending the mail 
-    server.login(msg['From'], password)
-    
-    
-    # send the message via the server. 
-    server.sendmail(msg['From'], msg['To'], msg.as_string())
-    
-    server.quit()
-    
-    return 'Mensaje enviado'
+    try:
+        # create message object instance 
+        msg = MIMEMultipart()    
+        message = """Reporte automático sobre integridad de datos en base de datos Olist
+                                
+                    • closed_deals: {}
+                    • customers: {} 
+                    • marketing_qualified_leads: {} 
+                    • order_items: {} 
+                    • order_payments: {} 
+                    • order_reviews: {} 
+                    • orders: {} 
+                    • products: {} 
+                    • sellers: {} 
+                """.format(validaciones[0],validaciones[1],validaciones[2],
+                            validaciones[3],validaciones[4],validaciones[5],
+                            validaciones[6],validaciones[7],validaciones[8])
+        
+        # setup the parameters of the message 
+        password = "nkdmrcazjvrtoqly"
+        msg['From'] = "grupo3.pg@gmail.com"
+        msg['To'] = "mmacielaortiz@gmail.com"
+        msg['Subject'] = "Probando"
+        
+        # add in the message body 
+        msg.attach(MIMEText(message, 'plain'))
+        
+        #create server 
+        server = smtplib.SMTP('smtp.gmail.com: 587')
+        
+        server.starttls()
+        
+        # Login Credentials for sending the mail 
+        server.login(msg['From'], password)
+        
+        
+        # send the message via the server. 
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+        
+        server.quit()
+        
+        print("Email enviado")
+        return 'Email enviado'
+    except:
+        print("Error al enviar mail")
+        return "Error al enviar mail"
 
-validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketing_qualified_leads),
-            validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
-            validate_df(sellers),validate_df(products),validate_df(orders))
+
 
 
 # **************************************************************************************************************************
 # ****************************************************** Cargo a MySQL *****************************************************
 # **************************************************************************************************************************
 def motor():
-    print("Iniciando proceso")
+    print("Iniciando ejecución de función motor")
+    cursor = conect_db()
+
+    # **************************************************************************************************************************
+    # ************************************************ Importo datasets de la API **********************************************
+    # **************************************************************************************************************************
+
+    # Obtenemos dataframe de la API
+    print("Iniciando proceso de etl")
+    sellers = funciones_etl.sellers_etl()
+    products = funciones_etl.products_etl()
+    orders = funciones_etl.orders_etl()
+    order_items = funciones_etl.order_items_etl()
+    order_reviews = funciones_etl.order_reviews_etl()
+    order_payments = funciones_etl.order_payments_etl()
+    closed_deals = funciones_etl.closed_deals_etl()
+    customers = funciones_etl.customers_etl()
+    marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
+    zip_code_prefix = funciones_etl.zip_code_prefix_etl()
+    print("Proceso de etl finalizado correctamente")
+
+    # **************************************************************************************************************************
+    # ****************************************************** VALIDACIÓN ********************************************************
+    # **************************************************************************************************************************
+    def validate_df(dataframe):    
+        match dataframe.columns[0]:        
+            case "product_id":
+                target = products
+            case "seller_id":
+                target = sellers
+            case "customer_id":
+                target = customers
+            case "order_id":
+                if dataframe.columns[1] == 'order_item_id':
+                    target = order_items
+                elif dataframe.columns[1] == 'payment_sequential':
+                    target = order_payments
+                else:
+                    target = orders
+            case "mql_id":
+                if dataframe.columns[1] == 'seller_id':
+                    target = closed_deals
+                else:
+                    target = marketing_qualified_leads
+            case "review_id":
+                target = order_reviews
+
+        # Verificar la cantidad de columnas
+        if len(dataframe.columns) != len(target.columns):
+            return False
+        # Verificar los nombres de las columnas
+        if set(dataframe.columns) != set(target.columns):
+            return False
+        # Verificar el tipo de datos de las columnas    
+        for column, dtype in target.items():
+            if dataframe[column].dtype != dtype:
+                return False
+        return True
+    
+    validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketing_qualified_leads),
+            validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
+            validate_df(sellers),validate_df(products),validate_df(orders))
+    
+    
     enviado = False
     if (enviado == False):
         rta = enviar_email(validacion)
         enviado = True
 
-    if (rta == 'Mensaje enviado'):
+    #if (rta == 'Mensaje enviado'):
         # PRODUCTS
         cursor.execute("""CREATE TABLE IF NOT EXISTS products(
                                                 product_id VARCHAR(50) NOT NULL, 
@@ -896,4 +916,5 @@ def motor():
                                                         long)VALUES (%s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
         
+    print("Carga finalizada")
     return 'Carga finalizada'
