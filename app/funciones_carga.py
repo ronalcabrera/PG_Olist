@@ -24,7 +24,7 @@ def conect_db():
                 ssl={"rejectUnauthorized":True})
         cursor = conexion.cursor()
         print("Conexión con base de dato establecida correctamente")
-        return cursor
+        return [cursor, conexion]
     except:
         print("Error al conectarse a la db")
 
@@ -86,7 +86,8 @@ def enviar_email(validaciones):
 # **************************************************************************************************************************
 def motor():
     print("Iniciando ejecución de función motor")
-    cursor = conect_db()
+    cursor = conect_db()[0]
+    conexion = conect_db()[1]
 
     # **************************************************************************************************************************
     # ************************************************ Importo datasets de la API **********************************************
