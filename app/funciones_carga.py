@@ -128,7 +128,7 @@ validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketi
 # ****************************************************** Cargo a MySQL *****************************************************
 # **************************************************************************************************************************
 def motor():
-
+    print("Iniciando proceso")
     enviado = False
     if (enviado == False):
         rta = enviar_email(validacion)
