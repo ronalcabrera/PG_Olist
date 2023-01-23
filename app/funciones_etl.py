@@ -216,7 +216,7 @@ def zip_code_prefix_etl():
                                 'S/D'
                                 ))))))))))))))))))))))))))
 
-    zip_code_prefix['long'] =   np.where(zcpc=='SP',-46.63611,
+    zip_code_prefix['lon'] =   np.where(zcpc=='SP',-46.63611,
                                 np.where(zcpc=='RJ',-43.18223,
                                 np.where(zcpc=='ES',-46.68278,
                                 np.where(zcpc=='MG',-45.75861,

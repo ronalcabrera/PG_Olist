@@ -17,10 +17,10 @@ def conect_db():
     try:
         print("Iniciando conexión a base de datos")
         conexion = pymysql.connect(
-                host = 'aws-sa-east-1.connect.psdb.cloud',
-                user = 'hdj11vgbubzez1k2mmw0',
-                passwd = 'pscale_pw_xJtpCj9sIr1JRelAqFEIRExmGep2kJrFs12dxipAZrZ',
-                db = 'grupo7_pg',
+                host = '104.154.230.150',
+                user = 'admin',
+                passwd = 'admin',
+                db = 'dbolist',
                 ssl={"rejectUnauthorized":True})
         print("Conexión con base de dato establecida correctamente")
         return conexion
@@ -867,7 +867,7 @@ def motor():
                                                             prefix INT NOT NULL, 
                                                             customer_state VARCHAR(50) NOT NULL,
                                                             lat FLOAT NOT NULL,
-                                                            long FLOAT NOT NULL)
+                                                            lon FLOAT NOT NULL)
                             ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
         conexion.commit() # actualizo para ver los datos
 
@@ -879,19 +879,19 @@ def motor():
         prefix=[]
         customer_state=[]
         lat=[]
-        long=[]
+        lon=[]
 
         for i in range(len(sql)):    
             prefix.append(sql[i][0])
             customer_state.append(sql[i][1])
             lat.append(sql[i][2])
-            long.append(sql[i][3])
+            lon.append(sql[i][3])
 
         # Armo el dataframe
         sql_dataframe['prefix']=prefix
         sql_dataframe['customer_state']=customer_state
         sql_dataframe['lat']=lat
-        sql_dataframe['long']=long
+        sql_dataframe['lon']=lon
 
         # Normalizamos los tipos de dato
         lst = sql_dataframe.columns.to_list()
@@ -914,7 +914,7 @@ def motor():
                                                         prefix, 
                                                         customer_state,
                                                         lat,
-                                                        long)VALUES (%s, %s, %s, %s)""", lista)
+                                                        lon)VALUES (%s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
         
     print("Carga finalizada")
