@@ -92,7 +92,7 @@ def motor():
     # ************************************************ Importo datasets de la API **********************************************
     # **************************************************************************************************************************
 
-    # Obtenemos dataframe de la API
+    # Obtenemos dataframe del proceso de ETL
     print("Iniciando proceso de etl")
     sellers = funciones_etl.sellers_etl()
     products = funciones_etl.products_etl()
