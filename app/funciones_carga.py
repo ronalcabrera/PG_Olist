@@ -104,6 +104,7 @@ def motor():
     customers = funciones_etl.customers_etl()
     marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
     zip_code_prefix = funciones_etl.zip_code_prefix_etl()
+    geolocation =funciones_etl.geolocation_etl()
     print("Proceso de etl finalizado correctamente")
 
     # **************************************************************************************************************************
@@ -158,7 +159,7 @@ def motor():
         # PRODUCTS
         print("Iniciando proceso de creación de tablas")
         cursor.execute("""CREATE TABLE IF NOT EXISTS products(
-                                                product_id VARCHAR(50) NOT NULL, 
+                                                id_product VARCHAR(50) NOT NULL, 
                                                 product_category_name VARCHAR(50) NOT NULL,
                                                 product_name_lenght VARCHAR(10),
                                                 product_description_lenght VARCHAR(10) NOT NULL,
@@ -176,7 +177,7 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        product_id=[]
+        id_product=[]
         product_category_name=[]
         product_name_lenght=[]
         product_description_lenght=[]
@@ -187,7 +188,7 @@ def motor():
         product_width_cm=[]
 
         for i in range(len(sql)):
-            product_id.append(sql[i][0])
+            id_product.append(sql[i][0])
             product_category_name.append(sql[i][1])
             product_name_lenght.append(sql[i][2])
             product_description_lenght.append(sql[i][3])
@@ -198,7 +199,7 @@ def motor():
             product_width_cm.append(sql[i][8])  
 
         # Armo el dataframe
-        sql_dataframe['product_id']=product_id
+        sql_dataframe['id_product']=id_product
         sql_dataframe['product_category_name']=product_category_name
         sql_dataframe['product_name_lenght']=product_name_lenght
         sql_dataframe['product_description_lenght']=product_description_lenght
@@ -219,14 +220,14 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.product_id.to_list())
+        filas_max = len(filtro.id_product.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
             cursor.executemany("""INSERT INTO products(
-                                        product_id, 
+                                        id_product, 
                                         product_category_name,
                                         product_name_lenght,
                                         product_description_lenght,
@@ -251,10 +252,8 @@ def motor():
         # -----------------------------------------------------------------------------------------------------------------------
         # SELLERS
         cursor.execute("""CREATE TABLE IF NOT EXISTS sellers(
-                                                        seller_id VARCHAR(50) NOT NULL, 
-                                                        seller_zip_code_prefix VARCHAR(20) NOT NULL,
-                                                        seller_city VARCHAR(50) NOT NULL,
-                                                        seller_state VARCHAR(5) NOT NULL)
+                                                        id_seller VARCHAR(50) NOT NULL, 
+                                                        id_code_prefix VARCHAR(20) NOT NULL)
                         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
         conexion.commit() # actualizo para ver los datos
 
@@ -265,21 +264,15 @@ def motor():
         sql_dataframe = pd.DataFrame()
         # Armo las series
         sellerid=[]
-        seller_zip_code_prefix=[]
-        seller_city=[]
-        seller_state=[]
+        id_code_prefix=[]
 
         for i in range(len(sql)):    
             sellerid.append(sql[i][0])    
-            seller_zip_code_prefix.append(sql[i][1])    
-            seller_city.append(sql[i][2])    
-            seller_state.append(sql[i][3])
+            id_code_prefix.append(sql[i][1])     
 
         # Armo el dataframe
-        sql_dataframe['seller_id']=sellerid
-        sql_dataframe['seller_zip_code_prefix']=seller_zip_code_prefix
-        sql_dataframe['seller_city']=seller_city
-        sql_dataframe['seller_state']=seller_state
+        sql_dataframe['id_seller']=sellerid
+        sql_dataframe['id_code_prefix']=id_code_prefix
 
         # Normalizamos los tipos de dato
         lst = sql_dataframe.columns.to_list()
@@ -292,29 +285,26 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.seller_id.to_list())
+        filas_max = len(filtro.id_seller.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
             cursor.executemany("""INSERT INTO sellers(
-                                                    seller_id, 
-                                                    seller_zip_code_prefix,
-                                                    seller_city,
-                                                    seller_state
-                                                    )VALUES (%s, %s,%s, %s)""", lista)
+                                                    id_seller, 
+                                                    id_code_prefix) VALUES (%s, %s,%s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
 
         # Cambio los vacios por null
-        cursor.execute("UPDATE sellers SET seller_zip_code_prefix = NULL WHERE seller_zip_code_prefix = '';")
+        cursor.execute("UPDATE sellers SET id_code_prefix = NULL WHERE id_code_prefix = '';")
         conexion.commit()
 
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDERS
         cursor.execute("""CREATE TABLE IF NOT EXISTS orders(
-                                            order_id VARCHAR(50) NOT NULL, 
-                                            customer_id VARCHAR(50) NOT NULL,
+                                            id_order VARCHAR(50) NOT NULL, 
+                                            id_customer VARCHAR(50) NOT NULL,
                                             order_status VARCHAR(20) NOT NULL,
                                             order_purchase_timestamp VARCHAR(50) NOT NULL,
                                             order_approved_at VARCHAR(50) DEFAULT NULL,
@@ -329,8 +319,8 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        order_id=[]
-        customer_id=[]
+        id_order=[]
+        id_customer=[]
         order_status=[]
         order_purchase_timestamp=[]
         order_approved_at=[]
@@ -339,8 +329,8 @@ def motor():
         order_estimated_delivery_date=[]
 
         for i in range(len(sql)):
-            order_id.append(sql[i][0])  
-            customer_id.append(sql[i][1])  
+            id_order.append(sql[i][0])  
+            id_customer.append(sql[i][1])  
             order_status.append(sql[i][2])  
             order_purchase_timestamp.append(sql[i][3])  
             order_approved_at.append(sql[i][4])  
@@ -349,8 +339,8 @@ def motor():
             order_estimated_delivery_date.append(sql[i][7])  
 
         # Armo el dataframe
-        sql_dataframe['order_id']=order_id
-        sql_dataframe['customer_id']=customer_id
+        sql_dataframe['id_order']=id_order
+        sql_dataframe['id_customer']=id_customer
         sql_dataframe['order_status']=order_status
         sql_dataframe['order_purchase_timestamp']=order_purchase_timestamp
         sql_dataframe['order_approved_at']=order_approved_at
@@ -369,15 +359,15 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.order_id.to_list())
+        filas_max = len(filtro.id_order.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
             cursor.executemany("""INSERT INTO orders(
-                                                order_id, 
-                                                customer_id,
+                                                id_order, 
+                                                id_customer,
                                                 order_status,
                                                 order_purchase_timestamp,
                                                 order_approved_at,
@@ -458,8 +448,8 @@ def motor():
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_REVIEWS
         cursor.execute("""CREATE TABLE IF NOT EXISTS order_reviews(
-                                                    review_id VARCHAR(50) NOT NULL, 
-                                                    order_id VARCHAR(50) NOT NULL,
+                                                    id_review VARCHAR(50) NOT NULL, 
+                                                    id_order VARCHAR(50) NOT NULL,
                                                     review_score VARCHAR(5) NOT NULL,
                                                     review_comment_title VARCHAR(100) NOT NULL,
                                                     review_comment_message VARCHAR(500) NOT NULL,
@@ -474,8 +464,8 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        review_id=[]
-        order_id=[]
+        id_review=[]
+        id_order=[]
         review_score=[]
         review_comment_title=[]
         review_comment_message=[]
@@ -483,8 +473,8 @@ def motor():
         review_answer_timestamp=[]
 
         for i in range(len(sql)):    
-            review_id.append(sql[i][0])    
-            order_id.append(sql[i][1])    
+            id_review.append(sql[i][0])    
+            id_order.append(sql[i][1])    
             review_score.append(sql[i][2])    
             review_comment_title.append(sql[i][3])
             review_comment_message.append(sql[i][4])
@@ -492,8 +482,8 @@ def motor():
             review_answer_timestamp.append(sql[i][6])
 
         # Armo el dataframe
-        sql_dataframe['review_id']=review_id
-        sql_dataframe['order_id']=order_id
+        sql_dataframe['id_review']=id_review
+        sql_dataframe['id_order']=id_order
         sql_dataframe['review_score']=review_score
         sql_dataframe['review_comment_title']=review_comment_title
         sql_dataframe['review_comment_message']=review_comment_message
@@ -511,15 +501,15 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.review_id.to_list())
+        filas_max = len(filtro.id_review.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
             cursor.executemany("""INSERT INTO order_reviews (
-                                        review_id, 
-                                        order_id,
+                                        id_review, 
+                                        id_order,
                                         review_score,
                                         review_comment_title,
                                         review_comment_message,
@@ -536,7 +526,7 @@ def motor():
 
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_PAYMENTS
-        cursor.execute("""CREATE TABLE IF NOT EXISTS order_payments(order_id VARCHAR(50) NOT NULL, 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS order_payments(id_order VARCHAR(50) NOT NULL, 
                                                     payment_sequential VARCHAR(5) NOT NULL,
                                                     payment_type VARCHAR(20) NOT NULL,
                                                     payment_installments VARCHAR(5) NOT NULL,
@@ -550,21 +540,21 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        order_id=[]
+        id_order=[]
         payment_sequential=[]
         payment_type=[]
         payment_installments=[]
         payment_value=[]
 
         for i in range(len(sql)):    
-            order_id.append(sql[i][0])    
+            id_order.append(sql[i][0])    
             payment_sequential.append(sql[i][1])    
             payment_type.append(sql[i][2])    
             payment_installments.append(sql[i][3])
             payment_value.append(sql[i][4])
 
         # Armo el dataframe
-        sql_dataframe['order_id']=order_id
+        sql_dataframe['id_order']=id_order
         sql_dataframe['payment_sequential']=payment_sequential
         sql_dataframe['payment_type']=payment_type
         sql_dataframe['payment_installments']=payment_installments
@@ -581,13 +571,13 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.order_id.to_list())
+        filas_max = len(filtro.id_order.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
             cursor.executemany("""INSERT INTO order_payments (
-                                        order_id, 
+                                        id_order, 
                                         payment_sequential,
                                         payment_type,
                                         payment_installments,
@@ -601,13 +591,14 @@ def motor():
         cursor.execute("UPDATE order_payments SET payment_value = NULL WHERE payment_value = '';")
         conexion.commit()
 
+
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_ITEMS
         cursor.execute("""CREATE TABLE IF NOT EXISTS order_items(
-                                                        order_id VARCHAR(50) NOT NULL, 
-                                                        order_item_id VARCHAR(10) NOT NULL,
-                                                        product_id VARCHAR(50) NOT NULL,
-                                                        seller_id VARCHAR(50) NOT NULL,
+                                                        id_order VARCHAR(50) NOT NULL, 
+                                                        id_order_item VARCHAR(10) NOT NULL,
+                                                        id_product VARCHAR(50) NOT NULL,
+                                                        id_seller VARCHAR(50) NOT NULL,
                                                         shipping_limit_date VARCHAR(50) NOT NULL,
                                                         price VARCHAR(20) NOT NULL,
                                                         freight_value VARCHAR(20) NOT NULL)
@@ -620,28 +611,28 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        order_id=[]
-        order_item_id=[]
-        product_id=[]
-        seller_id=[]
+        id_order=[]
+        id_order_item=[]
+        id_product=[]
+        id_seller=[]
         shipping_limit_date=[]
         price=[]
         freight_value=[]
 
         for i in range(len(sql)):    
-            order_id.append(sql[i][0])    
-            order_item_id.append(sql[i][1])    
-            product_id.append(sql[i][2])    
-            seller_id.append(sql[i][3])
+            id_order.append(sql[i][0])    
+            id_order_item.append(sql[i][1])    
+            id_product.append(sql[i][2])    
+            id_seller.append(sql[i][3])
             shipping_limit_date.append(sql[i][4])
             price.append(sql[i][5])
             freight_value.append(sql[i][6])
 
         # Armo el dataframe
-        sql_dataframe['order_id']=order_id
-        sql_dataframe['order_item_id']=order_item_id
-        sql_dataframe['product_id']=product_id
-        sql_dataframe['seller_id']=seller_id
+        sql_dataframe['id_order']=id_order
+        sql_dataframe['id_order_item']=id_order_item
+        sql_dataframe['id_product']=id_product
+        sql_dataframe['id_seller']=id_seller
         sql_dataframe['shipping_limit_date']=shipping_limit_date
         sql_dataframe['price']=price
         sql_dataframe['freight_value']=freight_value
@@ -657,16 +648,16 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.order_id.to_list())
+        filas_max = len(filtro.id_order.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
             cursor.executemany("""INSERT INTO order_items (
-                                        order_id, 
-                                        order_item_id,
-                                        product_id,
-                                        seller_id,
+                                        id_order, 
+                                        id_order_item,
+                                        id_product,
+                                        id_seller,
                                         shipping_limit_date,
                                         price,
                                         freight_value)
@@ -674,7 +665,7 @@ def motor():
             conexion.commit() # actualizo para ver los datos
             
         # Cambio los vacios por null
-        cursor.execute("UPDATE order_items SET order_item_id = NULL WHERE order_item_id = '';")
+        cursor.execute("UPDATE order_items SET id_order_item = NULL WHERE id_order_item = '';")
         cursor.execute("UPDATE order_items SET shipping_limit_date = NULL WHERE shipping_limit_date = '';")
         cursor.execute("UPDATE order_items SET price = NULL WHERE price = '';")
         cursor.execute("UPDATE order_items SET freight_value = NULL WHERE freight_value = '';")
@@ -683,11 +674,9 @@ def motor():
         # -----------------------------------------------------------------------------------------------------------------------
         # CUSTOMERS
         cursor.execute("""CREATE TABLE IF NOT EXISTS customers(
-                                                            customer_id VARCHAR(50) NOT NULL, 
-                                                            customer_unique_id VARCHAR(50) NOT NULL,
-                                                            customer_zip_code_prefix VARCHAR(50) NOT NULL,
-                                                            customer_city VARCHAR(50) NOT NULL,
-                                                            customer_state VARCHAR(5) NOT NULL)
+                                                            id_customer VARCHAR(50) NOT NULL, 
+                                                            id_customer_unique VARCHAR(50) NOT NULL,
+                                                            id_code_prefix VARCHAR(50) NOT NULL)
                             ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
         conexion.commit() # actualizo para ver los datos
 
@@ -696,25 +685,19 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        customer_id=[]
-        customer_unique_id=[]
-        customer_zip_code_prefix=[]
-        customer_city=[]
-        customer_state=[]
+        id_customer=[]
+        id_customer_unique=[]
+        id_code_prefix=[]
 
         for i in range(len(sql)):    
-            customer_id.append(sql[i][0])    
-            customer_unique_id.append(sql[i][1])    
-            customer_zip_code_prefix.append(sql[i][2])    
-            customer_city.append(sql[i][3])
-            customer_state.append(sql[i][4])
+            id_customer.append(sql[i][0])    
+            id_customer_unique.append(sql[i][1])    
+            id_code_prefix.append(sql[i][2])    
 
         # Armo el dataframe
-        sql_dataframe['customer_id']=customer_id
-        sql_dataframe['customer_unique_id']=customer_unique_id
-        sql_dataframe['customer_zip_code_prefix']=customer_zip_code_prefix
-        sql_dataframe['customer_city']=customer_city
-        sql_dataframe['customer_state']=customer_state
+        sql_dataframe['id_customer']=id_customer
+        sql_dataframe['id_customer_unique']=id_customer_unique
+        sql_dataframe['id_code_prefix']=id_code_prefix
 
         # Normalizamos los tipos de dato
         lst = sql_dataframe.columns.to_list()
@@ -727,26 +710,24 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.customer_id.to_list())
+        filas_max = len(filtro.id_customer.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
-            cursor.executemany("""INSERT INTO customers (customer_id, 
-                                                        customer_unique_id,
-                                                        customer_zip_code_prefix,
-                                                        customer_city,
-                                                        customer_state)
+            cursor.executemany("""INSERT INTO customers (id_customer, 
+                                                        id_customer_unique,
+                                                        id_code_prefix)
                                                         VALUES (%s, %s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
 
         # Cambio los vacios por null
-        cursor.execute("UPDATE customers SET customer_zip_code_prefix = NULL WHERE customer_zip_code_prefix = '';")
+        cursor.execute("UPDATE customers SET id_code_prefix = NULL WHERE id_code_prefix = '';")
         conexion.commit()
 
         # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE customers MODIFY COLUMN customer_zip_code_prefix INT;")
+        cursor.execute("ALTER TABLE customers MODIFY COLUMN id_code_prefix INT;")
         conexion.commit()
 
         # -----------------------------------------------------------------------------------------------------------------------
@@ -916,6 +897,68 @@ def motor():
                                                         lat,
                                                         lon)VALUES (%s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
-        
+        # -----------------------------------------------------------------------------------------------------------------------
+        # GEOLOCATION
+        cursor.execute("""CREATE TABLE IF NOT EXISTS geolocation(
+                                                            id_state VARCHAR(5) NOT NULL, 
+                                                            state_name VARCHAR(50) NOT NULL,
+                                                            region VARCHAR(50) NOT NULL,
+                                                            lat VARCHAR(50) NOT NULL,
+                                                            lng VARCHAR(50) NOT NULL)
+                            ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
+        conexion.commit() # actualizo para ver los datos
+
+        cursor.execute('SELECT * FROM geolocation;')
+        sql = cursor.fetchall()
+        sql_dataframe = pd.DataFrame()
+
+        # Armo las series
+        id_state=[]
+        state_name=[]
+        region=[]
+        lat=[]
+        lng=[]
+
+        for i in range(len(sql)):    
+            id_state.append(sql[i][0])    
+            state_name.append(sql[i][1])    
+            region.append(sql[i][2])    
+            lat.append(sql[i][3])
+            lng.append(sql[i][4])
+
+        # Armo el dataframe
+        sql_dataframe['id_state']=id_state
+        sql_dataframe['state_name']=state_name
+        sql_dataframe['region']=region
+        sql_dataframe['lat']=lat
+        sql_dataframe['lng']=lng
+
+        # Normalizamos los tipos de dato
+        lst = sql_dataframe.columns.to_list()
+        for i in range(len(lst)):
+            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(geolocation[lst[i]].dtype)
+
+        # Check de informacion nueva
+        filtro = sql_dataframe.merge(geolocation, how='outer', indicator='union')
+        filtro = filtro[filtro['union']=='right_only']
+        filtro = filtro[filtro.columns[:-1]]
+
+        # Carga a base de datos, de ser necesario.
+        filas_max = len(filtro.id_state.to_list())
+        if filas_max > 0:
+            lista = []
+            for i in range (filas_max):
+                lista.append(tuple(filtro.iloc[i]))
+
+            cursor.executemany("""INSERT INTO geolocation (id_state, 
+                                                        state_name,
+                                                        region,
+                                                        lat,
+                                                        lng)
+                                                        VALUES (%s, %s, %s, %s, %s)""", lista)
+            conexion.commit() # actualizo para ver los datos
+
+
     print("Carga finalizada")
     return 'Carga finalizada'
+

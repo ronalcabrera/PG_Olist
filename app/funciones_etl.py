@@ -23,6 +23,8 @@ def products_etl():
     products['product_category_name'] = products['product_category_name'].map(cat_ingles.set_index('product_category_name')['product_category_name_english'])
     products = products[products.product_category_name.notnull()] # elimina 610 registros
     products = products[products.product_weight_g.notnull()] # elimina 1 registro
+    products.rename(columns={'product_id':'id_product'},
+                    inplace=True)
     return products
 
 # Limpieza del dataset olist_sellers_dataset
@@ -30,7 +32,12 @@ def sellers_etl():
     # Ingestamos dataset
     url = 'https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/olist_sellers_dataset.csv'
     sellers = pd.read_csv(url, delimiter=',', encoding='UTF-8')
-    # Creamos dataset limpio
+    # Renombramos columnas
+    sellers.rename(columns={'seller_id':'id_seller', 
+                            'seller_zip_code_prefix': 'id_code_prefix'},
+               inplace=True)
+    # Eliminamos columnas
+    sellers.drop(['seller_city', 'seller_state'], axis=1, inplace=True)
     return sellers
 
 #Limpieza del dataset olist_customers_dataset
@@ -38,6 +45,13 @@ def customers_etl():
     # Ingestamos dataset
     url = 'https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/olist_customers_dataset.csv'
     customers = pd.read_csv(url, delimiter=',', encoding='UTF-8')
+    # Renombramos columnas
+    customers.rename(columns={'customer_id':'id_customer',
+                            'customer_unique_id':'id_customer_unique',
+                            'customer_zip_code_prefix':'id_code_prefix'},
+                    inplace=True)
+    #Eliminamos columnas
+    customers.drop(['customer_city', 'customer_state'], axis=1, inplace=True)
     return customers
 
 #Limpieza del dataset olist_orders_dataset
@@ -51,14 +65,18 @@ def orders_etl():
     orders['order_delivered_carrier_date'] = pd.to_datetime(orders['order_delivered_carrier_date'], format='%Y/%m/%d')
     orders['order_delivered_customer_date'] = pd.to_datetime(orders['order_delivered_customer_date'], format='%Y/%m/%d')
     orders['order_estimated_delivery_date'] = pd.to_datetime(orders['order_estimated_delivery_date'], format='%Y/%m/%d') 
+    # Renombramos columnas
+    orders.rename(columns={'order_id':'id_order', 
+                           'customer_id': 'id_customer'},
+                 inplace=True)
     return orders
 
 # Limpieza del dataset olist_geolocation_dataset
-def geolocation_etl():
+def olist_geolocation_etl():
     # Ingestamos dataset
     url = 'https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/olist_geolocation_dataset.csv'
-    geolocation = pd.read_csv(url, delimiter=',', encoding='UTF-8')
-    return geolocation
+    olist_geolocation = pd.read_csv(url, delimiter=',', encoding='UTF-8')
+    return olist_geolocation
 
 # Limpieza del dataset olist_marketing_qualified_leads_dataset
 def marketing_qualified_leads_etl():
@@ -78,6 +96,9 @@ def order_items_etl():
     df_order_items = pd.read_csv(url, delimiter=',', encoding='UTF-8')   
     # Cambiar la columna shipping_limit_date a tipo datetime
     df_order_items['shipping_limit_date'] = pd.to_datetime(df_order_items['shipping_limit_date'])
+    # Renombramos columnas
+    df_order_items.rename(columns={'order_id':'id_order','order_item_id':'id_order_item',
+                               'product_id':'id_product','seller_id':'id_seller'}, inplace=True)
     return df_order_items
 
 #Limpieza del dataset olist_order_payments_dataset
@@ -85,6 +106,8 @@ def order_payments_etl():
     # Ingestamos dataset
     url='https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/olist_order_payments_dataset.csv'
     payments= pd.read_csv(url, delimiter=',', encoding='UTF-8') 
+    # Renombramos columnas
+    payments.rename(columns={'order_id':'id_order'}, inplace=True)
     return payments
 
 #Limpieza del dataset olist_order_reviews_dataset
@@ -109,6 +132,8 @@ def order_reviews_etl():
     reviews['review_creation_date']=reviews['review_creation_date'].astype('datetime64')
     # Cambio tipo de dato : de 'object' a 'datetime64'
     reviews['review_answer_timestamp']=reviews['review_answer_timestamp'].astype('datetime64')
+    # Renombramos columnas
+    reviews.rename(columns={'review_id':'id_review','order_id':'id_order'}, inplace=True)
     return reviews
 
 # Limpieza del dataset olist_closed_deals_dataset
@@ -146,106 +171,57 @@ def zip_code_prefix_etl():
 
     # Creo el dataframe que voy a exportar, y agrego la columna prefijos.
     zip_code_prefix = pd.DataFrame()
-    zip_code_prefix['prefix'] = prefix
+    zip_code_prefix['id_code_prefix'] = prefix
 
     # Ahora le agrego la columna del estado correspondiente a cada prefijo
-    czcp = zip_code_prefix.prefix # abrevio para escribir menos y sea mas facil leer.
+    czcp = zip_code_prefix.id_code_prefix # abrevio para escribir menos y sea mas facil leer.
 
-    zip_code_prefix['customer_state'] = np.where((czcp<20000),'SP',
-                                        np.where((czcp>19999)&(czcp<29000),'RJ',
-                                        np.where((czcp>28999)&(czcp<30000),'ES',
-                                        np.where((czcp>29999)&(czcp<40000),'MG',
-                                        np.where((czcp>39999)&(czcp<49000),'BA',
-                                        np.where((czcp>48999)&(czcp<50000),'SE',
-                                        np.where((czcp>49999)&(czcp<57000),'PE',
-                                        np.where((czcp>56999)&(czcp<58000),'AL',
-                                        np.where((czcp>57999)&(czcp<59000),'PB',
-                                        np.where((czcp>58999)&(czcp<60000),'RN',
-                                        np.where((czcp>59999)&(czcp<64000),'CE',
-                                        np.where((czcp>63999)&(czcp<65000),'PI',
-                                        np.where((czcp>64999)&(czcp<66000),'MA',
-                                        np.where((czcp>65999)&(czcp<68900),'PA',
-                                        np.where((czcp>68899)&(czcp<69000),'AP',
-                                        np.where((czcp>68999)&(czcp<69300),'AM',
-                                        np.where((czcp>69299)&(czcp<69400),'RR',
-                                        np.where((czcp>69399)&(czcp<69900),'AM',
-                                        np.where((czcp>69899)&(czcp<70000),'AC',
-                                        np.where((czcp>69999)&(czcp<72800),'DF',
-                                        np.where((czcp>72799)&(czcp<73000),'GO',
-                                        np.where((czcp>72999)&(czcp<73404),'DF',
-                                        np.where((czcp>73403)&(czcp<76800),'GO',
-                                        np.where((czcp>76799)&(czcp<77000),'RO',
-                                        np.where((czcp>76999)&(czcp<78000),'TO',
-                                        np.where((czcp>77999)&(czcp<78900),'MT',
-                                        np.where((czcp>78899)&(czcp<79000),'RO',
-                                        np.where((czcp>78999)&(czcp<80000),'MS',
-                                        np.where((czcp>79999)&(czcp<88000),'PR',
-                                        np.where((czcp>87999)&(czcp<90000),'SC',
-                                        np.where((czcp>89999)&(czcp<100000),'SC',
-                                        'S/D' # Si no esta en el rango, sin datos.
-                                        )))))))))))))))))))))))))))))))
+    zip_code_prefix['id_state'] = np.where((czcp<20000),'SP',
+                                            np.where((czcp>19999)&(czcp<29000),'RJ',
+                                            np.where((czcp>28999)&(czcp<30000),'ES',
+                                            np.where((czcp>29999)&(czcp<40000),'MG',
+                                            np.where((czcp>39999)&(czcp<49000),'BA',
+                                            np.where((czcp>48999)&(czcp<50000),'SE',
+                                            np.where((czcp>49999)&(czcp<57000),'PE',
+                                            np.where((czcp>56999)&(czcp<58000),'AL',
+                                            np.where((czcp>57999)&(czcp<59000),'PB',
+                                            np.where((czcp>58999)&(czcp<60000),'RN',
+                                            np.where((czcp>59999)&(czcp<64000),'CE',
+                                            np.where((czcp>63999)&(czcp<65000),'PI',
+                                            np.where((czcp>64999)&(czcp<66000),'MA',
+                                            np.where((czcp>65999)&(czcp<68900),'PA',
+                                            np.where((czcp>68899)&(czcp<69000),'AP',
+                                            np.where((czcp>68999)&(czcp<69300),'AM',
+                                            np.where((czcp>69299)&(czcp<69400),'RR',
+                                            np.where((czcp>69399)&(czcp<69900),'AM',
+                                            np.where((czcp>69899)&(czcp<70000),'AC',
+                                            np.where((czcp>69999)&(czcp<72800),'DF',
+                                            np.where((czcp>72799)&(czcp<73000),'GO',
+                                            np.where((czcp>72999)&(czcp<73404),'DF',
+                                            np.where((czcp>73403)&(czcp<76800),'GO',
+                                            np.where((czcp>76799)&(czcp<77000),'RO',
+                                            np.where((czcp>76999)&(czcp<78000),'TO',
+                                            np.where((czcp>77999)&(czcp<78900),'MT',
+                                            np.where((czcp>78899)&(czcp<79000),'RO',
+                                            np.where((czcp>78999)&(czcp<80000),'MS',
+                                            np.where((czcp>79999)&(czcp<88000),'PR',
+                                            np.where((czcp>87999)&(czcp<90000),'SC',
+                                            np.where((czcp>89999)&(czcp<100000),'SC',
+                                            'S/D' # Si no esta en el rango, sin datos.
+                                            )))))))))))))))))))))))))))))))
 
-    zcpc = zip_code_prefix.customer_state.values
-
-    zip_code_prefix['lat'] =    np.where(zcpc=='SP',-23.5475,
-                                np.where(zcpc=='RJ',-22.90642,
-                                np.where(zcpc=='ES',-22.11583,
-                                np.where(zcpc=='MG',-21.235,
-                                np.where(zcpc=='BA',-12.97111,
-                                np.where(zcpc=='SE',-10.91111,
-                                np.where(zcpc=='PE',-8.05389,
-                                np.where(zcpc=='AL',-9.66583,
-                                np.where(zcpc=='PB',-7.115,
-                                np.where(zcpc=='RN',-5.795,
-                                np.where(zcpc=='CE',-3.71722,
-                                np.where(zcpc=='PI',-5.08917,
-                                np.where(zcpc=='MA',-2.52972,
-                                np.where(zcpc=='PA',-1.45583,
-                                np.where(zcpc=='AP',0.03889,
-                                np.where(zcpc=='AM',-3.10194,
-                                np.where(zcpc=='RR',2.81972,
-                                np.where(zcpc=='AC',-9.97472,
-                                np.where(zcpc=='DF',-15.77972,
-                                np.where(zcpc=='GO',-16.67861,
-                                np.where(zcpc=='RO',-8.76194,
-                                np.where(zcpc=='TO',-10.16745,
-                                np.where(zcpc=='MT',-15.59611,
-                                np.where(zcpc=='MS',-20.44278,
-                                np.where(zcpc=='PR',-25.42778,
-                                np.where(zcpc=='SC',-27.59667,
-                                'S/D'
-                                ))))))))))))))))))))))))))
-
-    zip_code_prefix['lon'] =   np.where(zcpc=='SP',-46.63611,
-                                np.where(zcpc=='RJ',-43.18223,
-                                np.where(zcpc=='ES',-46.68278,
-                                np.where(zcpc=='MG',-45.75861,
-                                np.where(zcpc=='BA',-38.51083,
-                                np.where(zcpc=='SE',-37.07167,
-                                np.where(zcpc=='PE',-34.88111,
-                                np.where(zcpc=='AL',-35.73528,
-                                np.where(zcpc=='PB',-34.86306,
-                                np.where(zcpc=='RN',-35.20944,
-                                np.where(zcpc=='CE',-38.54306,
-                                np.where(zcpc=='PI',-42.80194,
-                                np.where(zcpc=='MA',-44.30278,
-                                np.where(zcpc=='PA',-48.50444,
-                                np.where(zcpc=='AP',-51.06639,
-                                np.where(zcpc=='AM',-60.025,
-                                np.where(zcpc=='RR',-60.67333,
-                                np.where(zcpc=='AC',-67.81,
-                                np.where(zcpc=='DF',-47.92972,
-                                np.where(zcpc=='GO',-49.25389,
-                                np.where(zcpc=='RO',-63.90389,
-                                np.where(zcpc=='TO',-48.32766,
-                                np.where(zcpc=='MT',-56.09667,
-                                np.where(zcpc=='MS',-54.64639,
-                                np.where(zcpc=='PR',-49.27306,
-                                np.where(zcpc=='SC',-48.54917,
-                                'S/D'
-                                ))))))))))))))))))))))))))
+    zip_code_prefix = zip_code_prefix[['id_state','id_code_prefix']]
 
     return zip_code_prefix
+
+# Limpieza del dataset geolocation
+def geolocation_etl():
+    # Ingestamos dataset
+    url = 'https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/geolocation.csv'
+    geolocation = pd.read_csv(url, delimiter=',', encoding='UTF-8')
+    return geolocation
+
+
 
 
 
