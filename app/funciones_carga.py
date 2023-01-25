@@ -112,25 +112,25 @@ def motor():
     # **************************************************************************************************************************
     def validate_df(dataframe):    
         match dataframe.columns[0]:        
-            case "product_id":
+            case "id_product":
                 target = products
-            case "seller_id":
+            case "id_seller":
                 target = sellers
-            case "customer_id":
+            case "id_customer":
                 target = customers
-            case "order_id":
-                if dataframe.columns[1] == 'order_item_id':
+            case "id_order":
+                if dataframe.columns[1] == 'id_order_item':
                     target = order_items
                 elif dataframe.columns[1] == 'payment_sequential':
                     target = order_payments
                 else:
                     target = orders
             case "mql_id":
-                if dataframe.columns[1] == 'seller_id':
+                if dataframe.columns[1] == 'id_seller':
                     target = closed_deals
                 else:
                     target = marketing_qualified_leads
-            case "review_id":
+            case "id_review":
                 target = order_reviews
 
         # Verificar la cantidad de columnas
