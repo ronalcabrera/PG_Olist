@@ -28,14 +28,12 @@ def conect_db():
         print("Error al conectarse a la db")
 
 
-
 def enviar_email(validaciones):
     try:
         # create message object instance 
         msg = MIMEMultipart()    
         message = """Reporte automático sobre integridad de datos en base de datos Olist
                                 
-                    • closed_deals: {}
                     • customers: {} 
                     • marketing_qualified_leads: {} 
                     • order_items: {} 
@@ -46,13 +44,13 @@ def enviar_email(validaciones):
                     • sellers: {} 
                 """.format(validaciones[0],validaciones[1],validaciones[2],
                             validaciones[3],validaciones[4],validaciones[5],
-                            validaciones[6],validaciones[7],validaciones[8])
-        
+                            validaciones[6],validaciones[7])
+        print(message)
         # setup the parameters of the message 
-        password = "nkdmrcazjvrtoqly"
-        msg['From'] = "grupo3.pg@gmail.com"
+        password = "comauhyufyulgdry"
+        msg['From'] = "grupo3.olist@gmail.com"
         msg['To'] = "mmacielaortiz@gmail.com"
-        msg['Subject'] = "Probando"
+        msg['Subject'] = "Validacion"
         
         # add in the message body 
         msg.attach(MIMEText(message, 'plain'))
@@ -78,8 +76,6 @@ def enviar_email(validaciones):
         return "Error al enviar mail"
 
 
-
-
 # **************************************************************************************************************************
 # ****************************************************** Cargo a MySQL *****************************************************
 # **************************************************************************************************************************
@@ -89,7 +85,7 @@ def motor():
     cursor = conexion.cursor()
 
     # **************************************************************************************************************************
-    # ************************************************ Importo datasets de la API **********************************************
+    # ************************************************ Importo datasets  *******************************************************
     # **************************************************************************************************************************
 
     # Obtenemos dataframe del proceso de ETL
@@ -100,7 +96,7 @@ def motor():
     order_items = funciones_etl.order_items_etl()
     order_reviews = funciones_etl.order_reviews_etl()
     order_payments = funciones_etl.order_payments_etl()
-    closed_deals = funciones_etl.closed_deals_etl()
+    #closed_deals = funciones_etl.closed_deals_etl()
     customers = funciones_etl.customers_etl()
     marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
     zip_code_prefix = funciones_etl.zip_code_prefix_etl()
@@ -112,25 +108,22 @@ def motor():
     # **************************************************************************************************************************
     def validate_df(dataframe):    
         match dataframe.columns[0]:        
-            case "product_id":
+            case "id_product":
                 target = products
-            case "seller_id":
+            case "id_seller":
                 target = sellers
-            case "customer_id":
+            case "id_customer":
                 target = customers
-            case "order_id":
-                if dataframe.columns[1] == 'order_item_id':
+            case "id_order":
+                if dataframe.columns[1] == 'id_order_item':
                     target = order_items
                 elif dataframe.columns[1] == 'payment_sequential':
                     target = order_payments
                 else:
                     target = orders
-            case "mql_id":
-                if dataframe.columns[1] == 'seller_id':
-                    target = closed_deals
-                else:
+            case "mql_id":   
                     target = marketing_qualified_leads
-            case "review_id":
+            case "id_review":
                 target = order_reviews
 
         # Verificar la cantidad de columnas
@@ -145,7 +138,7 @@ def motor():
                 return False
         return True
     
-    validacion=(validate_df(closed_deals),validate_df(customers),validate_df(marketing_qualified_leads),
+    validacion=(validate_df(customers),validate_df(marketing_qualified_leads),
             validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
             validate_df(sellers),validate_df(products),validate_df(orders))
     
@@ -155,7 +148,7 @@ def motor():
         rta = enviar_email(validacion)
         enviado = True
 
-    #if (rta == 'Mensaje enviado'):
+
         # PRODUCTS
         print("Iniciando proceso de creación de tablas")
         cursor.execute("""CREATE TABLE IF NOT EXISTS products(
@@ -293,7 +286,7 @@ def motor():
 
             cursor.executemany("""INSERT INTO sellers(
                                                     id_seller, 
-                                                    id_code_prefix) VALUES (%s, %s,%s, %s)""", lista)
+                                                    id_code_prefix) VALUES (%s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
 
         # Cambio los vacios por null
@@ -719,7 +712,7 @@ def motor():
             cursor.executemany("""INSERT INTO customers (id_customer, 
                                                         id_customer_unique,
                                                         id_code_prefix)
-                                                        VALUES (%s, %s, %s, %s, %s)""", lista)
+                                                        VALUES (%s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
 
         # Cambio los vacios por null
@@ -731,124 +724,10 @@ def motor():
         conexion.commit()
 
         # -----------------------------------------------------------------------------------------------------------------------
-        # CLOSED_DEALS
-        cursor.execute("""CREATE TABLE IF NOT EXISTS closed_deals(
-                                                            mql_id VARCHAR(50) NOT NULL, 
-                                                            seller_id VARCHAR(50) NOT NULL,
-                                                            sdr_id VARCHAR(50) NOT NULL,
-                                                            sr_id VARCHAR(50) NOT NULL,
-                                                            won_date VARCHAR(50) NOT NULL,
-                                                            business_segment VARCHAR(50) NOT NULL,
-                                                            lead_type VARCHAR(20) NOT NULL,
-                                                            lead_behaviour_profile VARCHAR(20) NOT NULL,
-                                                            has_company VARCHAR(10) NOT NULL,
-                                                            has_gtin VARCHAR(10) NOT NULL,
-                                                            average_stock VARCHAR(10) NOT NULL,
-                                                            business_type VARCHAR(20) NOT NULL,
-                                                            declared_product_catalog_size VARCHAR(50) DEFAULT NULL,
-                                                            declared_monthly_revenue VARCHAR(20) NOT NULL)
-                            ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
-        conexion.commit() # actualizo para ver los datos
-
-        cursor.execute('SELECT * FROM closed_deals;')
-        sql = cursor.fetchall()
-        sql_dataframe = pd.DataFrame()
-
-        # Armo las series
-        mql_id=[]
-        seller_id=[]
-        sdr_id=[]
-        sr_id=[]
-        won_date=[]
-        business_segment=[]
-        lead_type=[]
-        lead_behaviour_profile=[]
-        has_company=[]
-        has_gtin=[]
-        average_stock=[]
-        business_type=[]
-        declared_product_catalog_size=[]
-        declared_monthly_revenue=[]
-
-        for i in range(len(sql)):    
-            mql_id.append(sql[i][0])    
-            seller_id.append(sql[i][1])    
-            sdr_id.append(sql[i][2])    
-            sr_id.append(sql[i][3])
-            won_date.append(sql[i][4])
-            business_segment.append(sql[i][5])
-            lead_type.append(sql[i][6])
-            lead_behaviour_profile.append(sql[i][7])
-            has_company.append(sql[i][8])
-            has_gtin.append(sql[i][9])
-            average_stock.append(sql[i][10])
-            business_type.append(sql[i][11])
-            declared_product_catalog_size.append(sql[i][12])
-            declared_monthly_revenue.append(sql[i][13])
-
-        # Armo el dataframe
-        sql_dataframe['mql_id']=mql_id
-        sql_dataframe['seller_id']=seller_id
-        sql_dataframe['sdr_id']=sdr_id
-        sql_dataframe['sr_id']=sr_id
-        sql_dataframe['won_date']=won_date
-        sql_dataframe['business_segment']=business_segment
-        sql_dataframe['lead_type']=lead_type
-        sql_dataframe['lead_behaviour_profile']=lead_behaviour_profile
-        sql_dataframe['has_company']=has_company
-        sql_dataframe['has_gtin']=has_gtin
-        sql_dataframe['average_stock']=average_stock
-        sql_dataframe['business_type']=business_type
-        sql_dataframe['declared_product_catalog_size']=declared_product_catalog_size
-        sql_dataframe['declared_monthly_revenue']=declared_monthly_revenue
-
-        # Normalizamos los tipos de dato
-        lst = sql_dataframe.columns.to_list()
-        for i in range(len(lst)):
-            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(closed_deals[lst[i]].dtype)
-
-        # Check de informacion nueva
-        filtro = sql_dataframe.merge(closed_deals, how='outer', indicator='union')
-        filtro = filtro[filtro['union']=='right_only']
-        filtro = filtro[filtro.columns[:-1]]
-
-        # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.mql_id.to_list())
-        if filas_max > 0:
-            lista = []
-            for i in range (filas_max):
-                lista.append(tuple(filtro.iloc[i]))
-            cursor.executemany("""INSERT INTO closed_deals (
-                                                    mql_id, 
-                                                    seller_id,
-                                                    sdr_id,
-                                                    sr_id,
-                                                    won_date,
-                                                    business_segment,
-                                                    lead_type,
-                                                    lead_behaviour_profile,
-                                                    has_company,
-                                                    has_gtin,
-                                                    average_stock,
-                                                    business_type,
-                                                    declared_product_catalog_size,
-                                                    declared_monthly_revenue)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", lista)
-            conexion.commit() # actualizo para ver los datos
-
-        # Cambio los vacios por null
-        cursor.execute("UPDATE closed_deals SET won_date = NULL WHERE won_date = '';")
-        cursor.execute("UPDATE closed_deals SET declared_product_catalog_size = NULL WHERE declared_product_catalog_size = '';")
-        cursor.execute("UPDATE closed_deals SET declared_monthly_revenue = NULL WHERE declared_monthly_revenue = '';")
-        conexion.commit()
-
-        # -----------------------------------------------------------------------------------------------------------------------
         # ZIP_CODE_PREFIX
         cursor.execute("""CREATE TABLE IF NOT EXISTS zip_code_prefix(
-                                                            prefix INT NOT NULL, 
-                                                            customer_state VARCHAR(50) NOT NULL,
-                                                            lat FLOAT NOT NULL,
-                                                            lon FLOAT NOT NULL)
+                                                            id_state VARCHAR(10) NOT NULL,
+                                                            id_code_prefix VARCHAR(50) NOT NULL)
                             ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
         conexion.commit() # actualizo para ver los datos
 
@@ -857,22 +736,16 @@ def motor():
         sql_dataframe = pd.DataFrame()
 
         # Armo las series
-        prefix=[]
-        customer_state=[]
-        lat=[]
-        lon=[]
+        id_state=[]
+        id_code_prefix=[]
 
         for i in range(len(sql)):    
-            prefix.append(sql[i][0])
-            customer_state.append(sql[i][1])
-            lat.append(sql[i][2])
-            lon.append(sql[i][3])
+            id_state.append(sql[i][0])
+            id_code_prefix.append(sql[i][1])
 
         # Armo el dataframe
-        sql_dataframe['prefix']=prefix
-        sql_dataframe['customer_state']=customer_state
-        sql_dataframe['lat']=lat
-        sql_dataframe['lon']=lon
+        sql_dataframe['id_state']=id_state
+        sql_dataframe['id_code_prefix']=id_code_prefix
 
         # Normalizamos los tipos de dato
         lst = sql_dataframe.columns.to_list()
@@ -885,17 +758,15 @@ def motor():
         filtro = filtro[filtro.columns[:-1]]
 
         # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.prefix.to_list())
+        filas_max = len(filtro.id_state.to_list())
         if filas_max > 0:
             lista = []
             for i in range (filas_max):
                 lista.append(tuple(filtro.iloc[i]))
 
             cursor.executemany("""INSERT INTO zip_code_prefix(
-                                                        prefix, 
-                                                        customer_state,
-                                                        lat,
-                                                        lon)VALUES (%s, %s, %s, %s)""", lista)
+                                                        id_state, 
+                                                        id_code_prefix)VALUES (%s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
         # -----------------------------------------------------------------------------------------------------------------------
         # GEOLOCATION

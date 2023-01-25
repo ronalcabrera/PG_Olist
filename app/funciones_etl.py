@@ -218,7 +218,7 @@ def zip_code_prefix_etl():
 def geolocation_etl():
     # Ingestamos dataset
     url = 'https://raw.githubusercontent.com/ronalcabrera/PG_Olist/main/Datasets/geolocation.csv'
-    geolocation = pd.read_csv(url, delimiter=',', encoding='UTF-8')
+    geolocation = pd.read_csv(url, delimiter=';', encoding='UTF-8')
     return geolocation
 
 
