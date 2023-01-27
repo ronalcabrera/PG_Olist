@@ -5,12 +5,10 @@ ALTER TABLE products ADD PRIMARY KEY (id_product);
 ALTER TABLE customers ADD PRIMARY KEY (id_customer);
 ALTER TABLE sellers ADD PRIMARY KEY (id_seller);
 ALTER TABLE orders ADD PRIMARY KEY (id_order);
-ALTER TABLE marketing_qualified_leads ADD PRIMARY KEY (mql_id);
 ALTER TABLE geolocation ADD PRIMARY KEY (id_state);
 ALTER TABLE zip_code_prefix ADD PRIMARY KEY (id_code_prefix);
 
 -- --------------------------------------------------------------------------------------------------------------------
-ALTER TABLE customers MODIFY id_code_prefix VARCHAR(50);
 
 -- FOREIGN KEYS
 

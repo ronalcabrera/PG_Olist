@@ -2,7 +2,6 @@
 # ****************************************************** Librerias *********************************************************
 # **************************************************************************************************************************
 import pymysql
-import sqlalchemy
 import pandas as pd
 import funciones_etl
 
@@ -35,7 +34,6 @@ def enviar_email(validaciones):
         message = """Reporte automático sobre integridad de datos en base de datos Olist
                                 
                     • customers: {} 
-                    • marketing_qualified_leads: {} 
                     • order_items: {} 
                     • order_payments: {} 
                     • order_reviews: {} 
@@ -44,10 +42,10 @@ def enviar_email(validaciones):
                     • sellers: {} 
                 """.format(validaciones[0],validaciones[1],validaciones[2],
                             validaciones[3],validaciones[4],validaciones[5],
-                            validaciones[6],validaciones[7])
+                            validaciones[6])
         print(message)
         # setup the parameters of the message 
-        password = "comauhyufyulgdry"
+        password = "oiwgkqfnjywwhval"
         msg['From'] = "grupo3.olist@gmail.com"
         msg['To'] = "mmacielaortiz@gmail.com"
         msg['Subject'] = "Validacion"
@@ -96,9 +94,7 @@ def motor():
     order_items = funciones_etl.order_items_etl()
     order_reviews = funciones_etl.order_reviews_etl()
     order_payments = funciones_etl.order_payments_etl()
-    #closed_deals = funciones_etl.closed_deals_etl()
     customers = funciones_etl.customers_etl()
-    marketing_qualified_leads = funciones_etl.marketing_qualified_leads_etl()
     zip_code_prefix = funciones_etl.zip_code_prefix_etl()
     geolocation =funciones_etl.geolocation_etl()
     print("Proceso de etl finalizado correctamente")
@@ -121,8 +117,6 @@ def motor():
                     target = order_payments
                 else:
                     target = orders
-            case "mql_id":   
-                    target = marketing_qualified_leads
             case "id_review":
                 target = order_reviews
 
@@ -138,7 +132,7 @@ def motor():
                 return False
         return True
     
-    validacion=(validate_df(customers),validate_df(marketing_qualified_leads),
+    validacion=(validate_df(customers),
             validate_df(order_items), validate_df(order_payments),validate_df(order_reviews),
             validate_df(sellers),validate_df(products),validate_df(orders))
     
@@ -156,7 +150,7 @@ def motor():
                                                 product_category_name VARCHAR(50) NOT NULL,
                                                 product_name_lenght VARCHAR(10),
                                                 product_description_lenght VARCHAR(10) NOT NULL,
-                                                product_photos_qty INT NOT NULL,
+                                                product_photos_qty VARCHAR(50) NOT NULL,
                                                 product_weight_g VARCHAR(20) NOT NULL,
                                                 product_length_cm VARCHAR(20) NOT NULL,
                                                 product_height_cm VARCHAR(20) NOT NULL,
@@ -377,67 +371,7 @@ def motor():
         cursor.execute("UPDATE orders SET order_delivered_customer_date = NULL WHERE order_delivered_customer_date = '';")
         cursor.execute("UPDATE orders SET order_estimated_delivery_date = NULL WHERE order_estimated_delivery_date = '';")
         conexion.commit()
-
-        # -----------------------------------------------------------------------------------------------------------------------
-        # MARKETING_QUALIFIED_LEADS
-        cursor.execute("""CREATE TABLE IF NOT EXISTS marketing_qualified_leads(
-                                                                            mql_id VARCHAR(50) NOT NULL, 
-                                                                            first_contact_date VARCHAR(30) NOT NULL,
-                                                                            landing_page_id VARCHAR(50) NOT NULL,
-                                                                            origin VARCHAR(20) NOT NULL)
-                            ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;""") # Ejecute cualquier Query deseada
-        conexion.commit() # actualizo para ver los datos
-
-        cursor.execute('SELECT * FROM marketing_qualified_leads;')
-        sql = cursor.fetchall()
-        sql_dataframe = pd.DataFrame()
-
-        # Armo las series
-        mql_id=[]
-        first_contact_date=[]
-        landing_page_id=[]
-        origin=[]
-
-        for i in range(len(sql)):
-            mql_id.append(sql[i][0])  
-            first_contact_date.append(sql[i][1])  
-            landing_page_id.append(sql[i][2])  
-            origin.append(sql[i][3])  
-
-        # Armo el dataframe
-        sql_dataframe['mql_id']=mql_id
-        sql_dataframe['first_contact_date']=first_contact_date
-        sql_dataframe['landing_page_id']=landing_page_id
-        sql_dataframe['origin']=origin
-
-        # Normalizamos los tipos de dato
-        lst = sql_dataframe.columns.to_list()
-        for i in range(len(lst)):
-            sql_dataframe[lst[i]] = sql_dataframe[lst[i]].astype(marketing_qualified_leads[lst[i]].dtype)
-
-        # Check de informacion nueva
-        filtro = sql_dataframe.merge(marketing_qualified_leads, how='outer', indicator='union')
-        filtro = filtro[filtro['union']=='right_only']
-        filtro = filtro[filtro.columns[:-1]]
-
-        # Carga a base de datos, de ser necesario.
-        filas_max = len(filtro.mql_id.to_list())
-        if filas_max > 0:
-            lista = []
-            for i in range (filas_max):
-                lista.append(tuple(filtro.iloc[i]))
-
-            cursor.executemany("""INSERT INTO marketing_qualified_leads(
-                                                mql_id, 
-                                                first_contact_date,
-                                                landing_page_id,
-                                                origin)VALUES (%s, %s,%s, %s)""", lista)
-            conexion.commit() # actualizo para ver los datos
-
-        # Cambio los vacios por null
-        cursor.execute("UPDATE marketing_qualified_leads SET first_contact_date = NULL WHERE first_contact_date = '';")
-        conexion.commit()
-
+        
         # -----------------------------------------------------------------------------------------------------------------------
         # ORDER_REVIEWS
         cursor.execute("""CREATE TABLE IF NOT EXISTS order_reviews(
@@ -719,10 +653,6 @@ def motor():
         cursor.execute("UPDATE customers SET id_code_prefix = NULL WHERE id_code_prefix = '';")
         conexion.commit()
 
-        # Cambio de tipo de columna
-        cursor.execute("ALTER TABLE customers MODIFY COLUMN id_code_prefix INT;")
-        conexion.commit()
-
         # -----------------------------------------------------------------------------------------------------------------------
         # ZIP_CODE_PREFIX
         cursor.execute("""CREATE TABLE IF NOT EXISTS zip_code_prefix(
@@ -829,7 +759,9 @@ def motor():
                                                         VALUES (%s, %s, %s, %s, %s)""", lista)
             conexion.commit() # actualizo para ver los datos
 
-
+    cursor.close()
+    conexion.close()
+    print('Se cerró la conexión a la DB')
     print("Carga finalizada")
     return 'Carga finalizada'
 
