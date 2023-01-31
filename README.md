@@ -5,7 +5,7 @@
 # <h1 align=center>**`E-commerce Olist`**</h1>
 
 <p align="center">
-<img src="https://play-lh.googleusercontent.com/eqLTXWdyygKUf85JsCXmcLSr1GnoYNLJfFVCmY-N8xGFr2T3PWwNcFdJ2Sx7MwcO6ac"  height=500>
+<img src="https://epiprodux.com/blog/wp-content/uploads/2022/02/Ecommerce-managers-Role.jpg"  height=500>
 </p>
 
 
@@ -14,9 +14,6 @@
 
 En este proyecto, se desarrolla un MVP (minimum viable product) para Olist, una compañía brasileña prestadora de servicios e-commerce para PYMES que funciona como un marketplace. El objetivo principal es ayudar a las pequeñas empresas a conectarse con mercados más grandes y mejorar la experiencia del usuario.
 Para lograrlo, Olist nos proporciona sus datos de 2016 a 2018, y se espera que el MVP entregado incluya análisis y soluciones innovadoras basadas en estos datos.
-
-<p align=center>
-<img src = 'https://epiprodux.com/blog/wp-content/uploads/2022/02/Ecommerce-managers-Role.jpg' height=300><p>
 
 
 
