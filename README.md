@@ -21,16 +21,16 @@ Para lograrlo, Olist nos proporciona sus datos de 2016 a 2018, y se espera que e
 
 A continuación se detallan los diferentes etapas para la ejecución del proyecto:
 
-+ *Data Engineering:* Se inició con el EDA, en el cual se buscó  conocer y comprender a los datos sin procesar. Además se investigó respecto de la empresa Olist, para poder definir cuál sería el rumbo que tomaría el proyecto y el producto que se presentaría. Así fue como se decidió que para la etapa correspondiente a la ingeniería del dato se ejecutará una aplicación que se desarrolló enteramente Python y con librerías como pandas, numpy, FastAPI y pymysql, que posteriormente sería automatizada por los servicios que proporciona GCP(Cloud SQL, Cloud Run, Google Scheduler).
++ <b>Data Engineering:</b> Se inició con el EDA, en el cual se buscó  conocer y comprender a los datos sin procesar. Además se investigó respecto de la empresa Olist, para poder definir cuál sería el rumbo que tomaría el proyecto y el producto que se presentaría. Así fue como se decidió que para la etapa correspondiente a la ingeniería del dato se ejecutará una aplicación que se desarrolló enteramente Python y con librerías como pandas, numpy, FastAPI y pymysql, que posteriormente sería automatizada por los servicios que proporciona GCP(Cloud SQL, Cloud Run, Google Scheduler).
 La aplicación consiste en la ejecución de las siguientes tareas: 
 El proceso de limpieza y transformación de los mismos (ETL) para su posterior análisis. Algunas de las acciones fueron la eliminación de duplicados, cambiar los 
 NaN por ‘Sin Dato’  cuando se trataba de datos str, y la transformación de los datos en un formato adecuado para su análisis.
 Luego de que los datos  fueron limpiados y transformados, se creó una base de 
 datos para almacenarlos y cargarlos.
 
-+ *Data Analytics:* Con los datos cargados en la base de datos, se utilizó Power BI para analizarlo y crear visualizaciones. Esto permitió una comprensión más profunda de los datos y su relación con otros factores. De esta etapa se obtuvo un dashboard y un reporte con un análisis exhaustivo del mismo.
++ <b>Data Analytics:</b> Con los datos cargados en la base de datos, se utilizó Power BI para analizarlo y crear visualizaciones. Esto permitió una comprensión más profunda de los datos y su relación con otros factores. De esta etapa se obtuvo un dashboard y un reporte con un análisis exhaustivo del mismo.
 
-+ *Machine Learning:* Finalmente, se utilizaron técnicas de aprendizaje automático para crear un modelo a partir de los datos. El modelo utilizado fue ForecasterAutoregressor, que permitió predecir la cantidad de ventas en el último trimestre del año 2018.
++ <b>Machine Learning:</b> Finalmente, se utilizaron técnicas de aprendizaje automático para crear un modelo a partir de los datos. El modelo utilizado fue ForecasterAutoregressor, que permitió predecir la cantidad de ventas en el último trimestre del año 2018.
 
 
 
