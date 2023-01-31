@@ -34,14 +34,6 @@ datos para almacenarlos y cargarlos.
 
 
 
-## :small_blue_diamond: **Video demostrativo**
-
-Link:
-
-+ https 
-
-
-
 ## :small_blue_diamond: **Disclaimer**
 
 + Este proyecto pretende simular un entorno laboral, en el cual se trabajan diversas temáticas ajustadas a la realidad. No reflejan necesariamente la filosofía y valores de la organización de Olist. Es por ello que la información expuesta y los resultados obtenidos no deben ser tomados en cuenta para la toma real de decisiones.
